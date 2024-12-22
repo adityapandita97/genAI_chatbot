@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot and File Upload</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f4f8;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1, h2 {
+            color: #333333;
+        }
+
+        .chatbot {
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #e7f3ff;
+            display: none; /* Initially hidden */
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbox {
+            list-style-type: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .chat-incoming {
+            background-color: #d1e7dd; /* Light green */
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .chat-outgoing {
+            background-color: #cfe2ff; /* Light blue */
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: right; /* Align outgoing messages to the right */
+        }
+
+        .chat-input {
+            display: flex;
+        }
+
+        textarea {
+            flex-grow: 1;
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #4a90e2; /* Blue */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #357ab8; /* Darker blue */
+        }
+
+        #uploadForm {
+            margin-top: 20px;
+        }
+
+        #uploadStatus {
+            margin-top: 10px;
+        }
+        
+        .response-section {
+          margin-top: 20px; 
+          padding-top: 10px; 
+          border-top: 2px solid #4a90e2; 
+          background-color:#e7f3ff; 
+          padding-bottom :10px; 
+          border-radius :10px; 
+      }
+      
+      /* Dark Mode Styles */
+      body.dark-mode {
+          background-color: #333333; /* Dark Background */
+          color: #ffffff; /* Light Text */
+      }
+      
+      .container.dark-mode {
+          background-color: #444444; /* Dark Container Background */
+      }
+      
+      .chatbot.dark-mode {
+          background-color: #555555; /* Dark Chatbot Background */
+      }
+      
+      .chat-incoming.dark-mode {
+          background-color: #666666; /* Dark Incoming Chat Color */
+      }
+      
+      .chat-outgoing.dark-mode {
+          background-color: #777777; /* Dark Outgoing Chat Color */
+      }
+      
+      button.dark-mode {
+          background-color: #007bff; /* Button Color in Dark Mode */
+      }
+      
+      button.dark-mode:hover {
+          background-color: #0056b3; /* Button Hover Color in Dark Mode */
+      }
+
+      .toggle-container {
+          display: flex;
+          align-items: center;
+          margin-bottom: 20px; 
+      }
+
+      .toggle-button {
+          position: relative; 
+          width: 60px; 
+          height: 30px; 
+          cursor:pointer; 
+      }
+
+      .toggle-button input { 
+          opacity :0; 
+          width :0; 
+          height :0; 
+      }
+
+      .slider { 
+          position :absolute; 
+          cursor:pointer; 
+          top :0; 
+          left :0; 
+          right :0; 
+          bottom :0; 
+          background-color :#ccc; 
+          transition :.4s; 
+          border-radius :30px ;  
+      } 
+
+      .slider::before { 
+         position:absolute ;  
+         content:"";  
+         height :26px ;  
+         width :26px ;  
+         left :2px ;  
+         bottom :2px ;  
+         background-color:white ;  
+         transition:.4s ;  
+         border-radius :50%;  
+     } 
+
+     input:not(:checked) + .slider {  
+         background-color:#2196F3 ;
+     } 
+
+     input:not(:checked) + .slider::before {  
+         transform :translateX(0);  
+     } 
+
+     input[type=checkbox]:checked + .slider {  
+         background-color:#2196F3 ;  
+     } 
+
+     input[type=checkbox]:checked + .slider::before {  
+         transform :translateX(30px);  
+     } 
+
+     .open-chat-btn {
+         background-color:#4a90e2 ;
+         color:white ;
+         border:none ;
+         padding :10px ;
+         border-radius :5px ;
+         cursor:pointer ;
+         margin-bottom :20px ;
+     }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chatbot Interface</h1>
+
+        <!-- Dark Mode Toggle -->
+        <div class="toggle-container">
+              <label for="darkModeToggle">Enable Dark Mode</label>
+              <label class="toggle-button">
+                  <input type="checkbox" id="darkModeToggle">
+                  <span class="slider"></span>
+              </label>
+        </div>
+
+        <!-- Button to Open Chatbot -->
+        <button class="open-chat-btn" onclick="toggleChat()">Open Chatbot</button>
+
+        <div class="chatbot">
+            <header>
+                <h2>ChatBot</h2>
+                <span id="close-chat" onclick="toggleChat()" style="cursor:pointer;">X</span>
+            </header>
+            
+            <ul class="chatbox" id="chatbox">
+                <li class="chat-incoming chat">Hey! How can I assist you today?</li>
+            </ul>
+            
+            <div class="chat-input">
+                <textarea id="user-input" rows="2" placeholder="Type your message..."></textarea>
+                <button id="sendBTN">Send</button>
+            </div>
+            
+          </div>
+
+          <!-- Response section to show chatbot responses -->
+          <div class="response-section">
+              <h3>Chatbot Responses:</h3>
+              <ul id="responseList" class="chatbox"></ul>
+          </div>
+
+          <h2>File Upload Section</h2>
+          <form id="uploadForm">
+              <input type="file" id="fileUpload" name="fileUpload">
+              <button type="button" id="uploadButton">Upload File</button>
+          </form>
+
+          <div id="uploadStatus"></div>
+      </div>
+
+      <script>
+          $(document).ready(function() {
+              // Send message on button click
+              $('#sendBTN').click(function() {
+                  const userMessage = $('#user-input').val();
+                  if (userMessage) {
+                      $('#chatbox').append(`<li class='chat-outgoing chat'>${userMessage}</li>`);
+                      $('#user-input').val(''); // Clear input field
+                      // Simulate bot response
+                      setTimeout(() => {
+                          $('#chatbox').append(`<li class='chat-incoming chat'>You said: ${userMessage}</li>`);
+                          $('#responseList').append(`<li>${userMessage}</li>`); // Show response in the response section
+                      }, 1000);
+                  }
+              });
+
+              // File upload functionality
+              $('#uploadButton').click(function() {
+                  const fileInput = document.getElementById('fileUpload');
+                  const file = fileInput.files[0];
+                  
+                  if (file) {
+                      const formData = new FormData();
+                      formData.append('file', file);
+
+                      // Replace with your API Gateway endpoint
+                      const apiEndpoint = 'https://your-api-id.execute-api.us-east-1.amazonaws.com/dev/upload'; 
+
+                      $.ajax({
+                          url: apiEndpoint,
+                          type: 'POST',
+                          data: formData,
+                          contentType: false,
+                          processData: false,
+                          success: function(response) {
+                              $('#uploadStatus').text('File uploaded successfully!');
+                          },
+                          error: function(error) {
+                              $('#uploadStatus').text('Error uploading file.');
+                              console.error('Error:', error);
+                          }
+                      });
+                  } else {
+                      alert('Please select a file to upload.');
+                  }
+              });
+
+              // Toggle dark mode
+              $('#darkModeToggle').change(function() {
+                  $('body').toggleClass('dark-mode');
+                  $('.container').toggleClass('dark-mode');
+                  $('.chatbot').toggleClass('dark-mode');
+                  $('.chat-incoming').toggleClass('dark-mode');
+                  $('.chat-outgoing').toggleClass('dark-mode');
+                  $('button').toggleClass('dark-mode');
+                  $('.open-chat-btn').toggleClass('dark-mode');
+              });
+          });
+
+          // Function to toggle chat visibility
+          function toggleChat() {
+              const chatBox = document.querySelector('.chatbot');
+              chatBox.style.display = chatBox.style.display === 'none' ? 'block' : 'none';
+              if (chatBox.style.display === 'block') { // If opening, clear the chatbox
+                $('#chatbox').empty();
+                $('#responseList').empty();
+                $('#chatbox').append(`<li class='chat-incoming chat'>Hey! How can I assist you today?</li>`); // Reset initial message
+              }
+          }
+      </script>
+</body>
+</html>
